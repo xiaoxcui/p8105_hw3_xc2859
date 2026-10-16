@@ -29,3 +29,31 @@ __Dataset description__
 
 The `ny_noaa` dataset contains `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. The observations were collected from `r n_distinct(ny_noaa$id)` weather stations between date of `r min(ny_noaa$date)` and date of `r max(ny_noaa$date)`. Each observation represents measurements of weather condition from one weather station on a specific date. The variables included in the dataset are station id, date, precipitation, snowfall, snow depth, and daily maximum and minimum temperatures. The proportion of missing data for variables station id, precipitation, snowfall, snow depth, daily maximum temperatures and daily minimum temperatures is 0%, 0%, 5.62%, 14.69%, 22.80%, 43.71% and 43.71%, respectively. Based on this, missing data is a large issue in this dataset, especially for daily maximum and minimum temperatures. There is also moderate missingness for snowfall (14.69% missing) and snow depth (22.80% missing), whereas missing data issue is mild for precipitation. 
 
+__Data cleaning and answer questions__
+
+For data cleaning, I first standardized the variable names. Then, I separated the `date` variable into 3 different variables `year`, `month` and `day`. In the original dataset, the units of temperatures and precipitation are in tenths of degrees Celsius (C) and tenths of millimeters (mm), respectively. I converted the unit of precipitation to mm and the unit of temperatures to degrees C. 
+
+```{r}
+# Clean the dataset
+library(lubridate) # I found this packages and functions for separating year, month and day on the Internet. 
+noaa_cleaned_df = 
+  ny_noaa |> 
+  janitor::clean_names() |> 
+  mutate(
+    year = year(date), 
+    month = month(date), 
+    day = day(date), 
+    prcp = prcp / 10, 
+    tmax = as.numeric(tmax) / 10, 
+    tmin = as.numeric(tmin) / 10
+  )
+
+# For snowfall, what are the most commonly observed values? 
+noaa_cleaned_df |> 
+  filter(!is.na(snow)) |> 
+  count(snow, sort = TRUE)
+```
+
+0 mm is the most commonly observed value. This is because most days are not in winter and don’t have snowfall. Other common values are 13 mm, 25 mm, 51 mm, and 76 mm. These values are likely the result of converting from inches to millimeters. If converting these values to inches, we can get approximately 0.5 inches, 1 inch, 2 inches, and 3 inches, respectively.
+
+
