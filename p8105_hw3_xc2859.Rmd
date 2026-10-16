@@ -5,3 +5,27 @@ date: "2026-10-16"
 output: github_document
 ---
 
+# Problem 1
+
+__Load dataset__
+
+Firstly, we load the packages and the dataset for setup. 
+
+```{r}
+# load packages and NY NOAA dataset
+library(tidyverse)
+library(patchwork)
+library(p8105.datasets)
+data("ny_noaa")
+
+# In order to assess which data might be an issue, we need to calculate the proportion of missing data for each variable. 
+ny_noaa |> 
+  summarize(
+    across(everything(), ~mean(is.na(.x))) * 100
+  )
+```
+
+__Dataset description__
+
+The `ny_noaa` dataset contains `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. The observations were collected from `r n_distinct(ny_noaa$id)` weather stations between date of `r min(ny_noaa$date)` and date of `r max(ny_noaa$date)`. Each observation represents measurements of weather condition from one weather station on a specific date. The variables included in the dataset are station id, date, precipitation, snowfall, snow depth, and daily maximum and minimum temperatures. The proportion of missing data for variables station id, precipitation, snowfall, snow depth, daily maximum temperatures and daily minimum temperatures is 0%, 0%, 5.62%, 14.69%, 22.80%, 43.71% and 43.71%, respectively. Based on this, missing data is a large issue in this dataset, especially for daily maximum and minimum temperatures. There is also moderate missingness for snowfall (14.69% missing) and snow depth (22.80% missing), whereas missing data issue is mild for precipitation. 
+
