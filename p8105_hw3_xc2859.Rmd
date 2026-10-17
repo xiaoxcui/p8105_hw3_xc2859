@@ -141,3 +141,56 @@ Comments on plots:
 (i) Temperature plot: There is an obvious positive relationship between daily minimum and maximum temperatures. Days with higher minimum daily temperatures also tend to have higher maximum temperatures. Some observations fall outside the main patterns. Some combinations even show a minimum temperature higher than the maximum, which may indicate errors in the records. 
 
 (ii) Distribution of snowfall by year plot: The distributions of snowfall are quite similar across years and do not show major changes in the long term. Most snowfall values are concentrated below 40 mm, and peaks occur repeatedly around approximately 13, 25, 51, and 76 mm across many years. This is consistent with the observation of common values in the previous question, which indicates that the snowfall values may be converted from inches to millimeters. 
+
+
+# Problem 2
+
+__Load, clean and merge the datasets__
+
+```{r}
+# Load and clean demographic data
+nhanes_covar_df = 
+  read_csv("data/nhanes_covar.csv", skip = 4) |>
+  janitor::clean_names() |> 
+  filter(age >= 21) |> 
+  drop_na() |> 
+  mutate(
+    sex = factor(
+      case_match(
+        sex, 
+        1 ~ "Male", 
+        2 ~ "Female"
+      ), 
+      levels = c("Male", "Female")
+    ), 
+    education = factor(
+      case_match(
+        education, 
+        1 ~ "Less than high school", 
+        2 ~ "High school equivalent", 
+        3 ~ "More than high school"
+      ), 
+      levels = c(
+        "Less than high school",
+        "High school equivalent",
+        "More than high school"
+      )
+    )
+  )
+
+# Load accelerometer data
+nhanes_accel_df = 
+  read_csv("data/nhanes_accel.csv") |> 
+  janitor::clean_names()
+
+# Merge two datasets
+nhanes_merged_df = 
+  inner_join(
+    nhanes_covar_df, 
+    nhanes_accel_df, 
+    by = "seqn"
+  )
+```
+The demographic data requires more data cleaning steps. After loading the demographic data, I firstly cleaned it by standardizing variable names followed by filtering and retaining participants aged 21 or above. Then, observations with missing data were dropped. The numeric codes for sex and education were then converted to categorical factors and ordered as `Male` / `Female` for sex and `Less than high school` / `High school equivalent` / `More than high school` for education. I then loaded the accelerometer data, cleaned the variable names, and finally merged the two datasets by participant ID, `seqn`, using the `inner_join()` function. 
+
+
