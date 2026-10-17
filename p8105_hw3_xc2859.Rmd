@@ -181,7 +181,16 @@ nhanes_covar_df =
 # Load accelerometer data
 nhanes_accel_df = 
   read_csv("data/nhanes_accel.csv") |> 
-  janitor::clean_names()
+  janitor::clean_names() |> 
+  pivot_longer(
+    min1:min1440, 
+    names_to = "minute", 
+    names_prefix = "min", 
+    values_to = "mims"
+  ) |> 
+  mutate(
+    minute = as.numeric(minute)
+  )
 
 # Merge two datasets
 nhanes_merged_df = 
@@ -191,13 +200,14 @@ nhanes_merged_df =
     by = "seqn"
   )
 ```
-The demographic data requires more data cleaning steps. After loading the demographic data, I firstly cleaned it by standardizing variable names followed by filtering and retaining participants aged 21 or above. Then, observations with missing data were dropped. The numeric codes for sex and education were then converted to categorical factors and ordered as `Male` / `Female` for sex and `Less than high school` / `High school equivalent` / `More than high school` for education. I then loaded the accelerometer data, cleaned the variable names, and finally merged the two datasets by participant ID, `seqn`, using the `inner_join()` function. 
+The demographic data requires more data cleaning steps. After loading the demographic data, I firstly cleaned it by standardizing variable names followed by filtering and retaining participants aged 21 or above. Then, observations with missing data were dropped. The numeric codes for sex and education were then converted to categorical factors and ordered as `Male` / `Female` for sex and `Less than high school` / `High school equivalent` / `More than high school` for education. I then loaded the accelerometer data and cleaned the variable names. The accelerometer data were then tidied by reshaping the `min1`-`min1440` variables into long format, creating separate `minute`and `mims` variables, and converting `minute` to numeric. Finally, I merged the two datasets by participant ID, `seqn`, using the `inner_join()` function. 
 
 __Table and visualization__
 
 ```{r}
 # Produce a reader-friendly table for the number of men and women in each education category
 nhanes_merged_df |> 
+  distinct(seqn, education, sex) |> 
   group_by(education, sex) |>
   summarize(count = n()) |>
   pivot_wider(
@@ -211,6 +221,7 @@ Comment: The more than high school group had the largest number of participants,
 ```{r}
 # Create a visualization of the age distributions for men and women in each education category
 nhanes_merged_df |> 
+  distinct(seqn, sex, age, education) |>
   ggplot(aes(x = sex, y = age)) +
   geom_boxplot(aes(fill = sex)) +
   facet_grid(. ~ education) +
