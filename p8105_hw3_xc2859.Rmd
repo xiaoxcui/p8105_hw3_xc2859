@@ -193,4 +193,27 @@ nhanes_merged_df =
 ```
 The demographic data requires more data cleaning steps. After loading the demographic data, I firstly cleaned it by standardizing variable names followed by filtering and retaining participants aged 21 or above. Then, observations with missing data were dropped. The numeric codes for sex and education were then converted to categorical factors and ordered as `Male` / `Female` for sex and `Less than high school` / `High school equivalent` / `More than high school` for education. I then loaded the accelerometer data, cleaned the variable names, and finally merged the two datasets by participant ID, `seqn`, using the `inner_join()` function. 
 
+__Table and visualization__
 
+```{r}
+# Produce a reader-friendly table for the number of men and women in each education category
+nhanes_merged_df |> 
+  janitor::tabyl(education, sex)
+```
+Comment: The more than high school group had the largest number of participants, while the less than high school group had the fewest participants. The numbers of men and women were similar in these two education categories, but the high school equivalent group included more men than women. 
+
+```{r}
+# Create a visualization of the age distributions for men and women in each education category
+nhanes_merged_df |> 
+  ggplot(aes(x = sex, y = age)) +
+  geom_boxplot(aes(fill = sex)) +
+  facet_grid(. ~ education) +
+  labs(
+    title = "Age Distribution by Sex and Education Level",
+    x = "Sex",
+    y = "Age (years)",
+    fill = "Sex"
+  )
+```
+
+Comment: Age distribution is different across education levels. Among participants with less than a high school education, the median ages of men and women are similar, both around 60 years old. In the high school equivalent group, women generally have higher age than men, and their median age is also higher than men. Participants with more than a high school education are relatively younger, with median ages in the early 40s for both men and women. There are no obvious outliers. 
