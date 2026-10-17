@@ -300,4 +300,102 @@ There is a clear 24-hour pattern across all education levels. Activity was lowes
 
 # Problem 3
 
+__Load and clean the datasets__
+
+```{r}
+# Load the 4 datasets
+citibike_Jan2020_df = 
+  read_csv("data/citibike/Jan 2020 Citi.csv") |>
+  janitor::clean_names() |> 
+  mutate(
+    year = 2020, 
+    month = "January"
+  )
+
+citibike_Jan2024_df = 
+  read_csv("data/citibike/Jan 2024 Citi.csv") |>
+  janitor::clean_names() |> 
+  mutate(
+    year = 2024,
+    month = "January"
+  )
+
+citibike_July2020_df = 
+  read_csv("data/citibike/July 2020 Citi.csv") |>
+  janitor::clean_names() |> 
+  mutate(
+    year = 2020,
+    month = "July"
+  )
+
+citibike_July2024_df = 
+  read_csv("data/citibike/July 2024 Citi.csv") |>
+  janitor::clean_names() |> 
+  mutate(
+    year = 2024,
+    month = "July"
+  )
+
+citibike_tidy_df = 
+  bind_rows(
+    citibike_Jan2020_df, 
+    citibike_Jan2024_df,
+    citibike_July2020_df, 
+    citibike_July2024_df
+  ) |> 
+  select(year, month, everything())
+```
+
+Dataset description: 
+The final dataset combines ride data from January and July in 2020 and 2024. Each observation represents one unique Citi Bike ride. The dataset contains `r nrow(citibike_tidy_df)` observations and `r ncol(citibike_tidy_df)` variables. Key variables include the ride ID, bike type, day of the week, ride duration, starting and ending station names, and membership status. Variables for `year` and `month` were added to identify the time period of each ride. 
+
+__Table for number of rides by year, month, and membership status__
+
+```{r}
+citibike_tidy_df |> 
+  group_by(year, month, member_casual) |>
+  summarize(
+    number_of_rides = n()
+  ) |>
+  pivot_wider(
+    names_from = member_casual,
+    values_from = number_of_rides
+  ) |>
+  knitr::kable(
+    col.names = c(
+      "Year", 
+      "Month", 
+      "Casual", 
+      "Member"
+    )
+  )
+```
+
+Comment: Citi Bike members had much more rides than casual riders across all four combinations of year and month. For both rider types, the number of rides was higher in July than in January. The number of rides also increased from 2020 to 2024 for both rider types. The highest number of rides occurred in July 2024, with 36262 rides by members and 10894 rides by casual riders. 
+
+__Table showing the 5 most popular starting stations for July 2024__
+
+```{r}
+citibike_tidy_df |>
+  filter(
+    year == 2024,
+    month == "July",
+    !is.na(start_station_name)
+  ) |>
+  count(
+    start_station_name,
+    sort = TRUE,
+    name = "number_of_rides"
+  ) |>
+  slice_head(n = 5) |>
+  knitr::kable(
+    col.names = c(
+      "Top 5 start stations", 
+      "Number of rides"
+    )
+  )
+```
+
+Comment: In July 2024, Pier 61 at Chelsea Piers was the most popular starting station with 163 rides, followed by University Pl & E 14 St with 155 rides. The top 5 stations had similar number of rides, ranging from 146 to 163. 
+
 
