@@ -9,6 +9,8 @@ output: github_document
 library(tidyverse)
 library(patchwork)
 library(p8105.datasets)
+library(hexbin)
+library(ggridges)
 ```
 
 # Problem 1
@@ -83,12 +85,59 @@ noaa_cleaned_df |>
   labs(
     title = "Average maximum temperature in January and July by stations, 1981-2010", 
     x = "Year", 
-    y = "Average maximum temperature (°C)", 
+    y = "Average maximum temperature (degrees C)", 
     caption = "Data from the ny_noaa dataset"
   )
 ```
 
 Observable / interpretable structure: 
+
 Based on the plots, there is a seasonal difference in average maximum temperatures, which is that temperatures in July are much higher than in January. Temperatures in January ranging from -10 to 10 degrees C also have greater fluctuation of average maximum temperatures than temperatures in July ranging from 20-35 degrees C. Most weather stations capture similar annual patterns, but there are a few outliers. For example, the lowest average maximum temperature in July was around 14 degrees C in the late 1980s; the lowest average maximum temperature in January was around -13 degrees C in the early 1980s.
 
+```{r, fig.width=12, fig.height=8}
+# Create temperature plot for tmax vs tmin
+temperature_plot = 
+  noaa_cleaned_df |>
+  filter(
+    !is.na(tmax), 
+    !is.na(tmin)
+  ) |> 
+  ggplot(aes(x = tmin, y = tmax)) + 
+  geom_hex() + 
+  labs(
+    title = "Temperature plot",
+    x = "Minimum daily temperature (degrees C)", 
+    y = "Maximum daily temperature (degrees C)"
+  )
 
+# Create snowfall distribution plot by year
+snowfall_plot = 
+  noaa_cleaned_df |> 
+  filter(
+    snow > 0, 
+    snow < 100
+  ) |> 
+  mutate(year = factor(year)) |> 
+  ggplot(aes(x = snow, y = year)) + 
+  geom_density_ridges(
+    scale = 1, 
+    alpha = 0.7, 
+    fill = "skyblue", 
+    color = "white"
+  ) + 
+  labs(
+    title = "Snowfall distribution by year",
+    x = "Snowfall (mm)",
+    y = "Year",
+    caption = "Data from the ny_noaa dataset"
+  )
+
+# Combine the two plots into a two-panel plot
+temperature_plot + snowfall_plot
+```
+
+Comments on plots: 
+
+(i) Temperature plot: There is an obvious positive relationship between daily minimum and maximum temperatures. Days with higher minimum daily temperatures also tend to have higher maximum temperatures. Some observations fall outside the main patterns. Some combinations even show a minimum temperature higher than the maximum, which may indicate errors in the records. 
+
+(ii) Distribution of snowfall by year plot: The distributions of snowfall are quite similar across years and do not show major changes in the long term. Most snowfall values are concentrated below 40 mm, and peaks occur repeatedly around approximately 13, 25, 51, and 76 mm across many years. This is consistent with the observation of common values in the previous question, which indicates that the snowfall values may be converted from inches to millimeters. 
