@@ -262,3 +262,42 @@ nhanes_merged_df |>
 ```
 
 Comment: Across all three education levels, total daily activity generally decreased with age, although the trend was not completely linear. Among participants with less than a high school education, men and women showed similar patterns. Compared with other education groups, they had the highest activity levels at younger ages and a steeper overall decline. Among those with a high school equivalent education, women tend to have higher total daily activity than men, with the largest sex difference around age 40, but this gap narrowed at older ages. Among participants with more than a high school education, total daily activity levels were relatively similar between men and women, but women's activity levels seem to be higher than men's. 
+
+__Plot 24-hr activity patterns__
+
+```{r}
+nhanes_merged_df |> 
+  group_by(education, sex, minute) |>
+  summarize(
+    mean_mims = mean(mims, na.rm = TRUE)
+  ) |>
+  mutate(
+    hour = minute / 60
+  ) |>
+  ggplot(aes(x = hour, y = mean_mims, color = sex)) +
+  geom_point(alpha = 0.05) + 
+  geom_smooth(
+    se = FALSE,
+    span = 0.1
+  ) + 
+  scale_x_continuous(
+    breaks = seq(0, 24, by = 6)
+  ) +
+  facet_grid(. ~ education) +
+  labs(
+    title = "24-hr activity patterns by sex and education Level",
+    x = "Hour of day",
+    y = "Average activity (MIMS)",
+    color = "Sex"
+  ) 
+```
+
+(For the 24-hour activity plot by sex and education level, I first tried to plot MIMS activities for all participants. But except for several outliers, the data were concentrated at the lower part of the graphs, which made pattern differences between sex and education groups hard to identify. So I decided to use the average MIMS value for each minute within each sex and education group to make the patterns easier to visualize.) 
+
+Describe the patterns: 
+There is a clear 24-hour pattern across all education levels. Activity was lowest from 0-6 hrs, and it increased rapidly after 6 hrs and remained relatively high during the daytime, followed by a decline in the evening. Among participants with less than a high school education, men and women had quite similar overall average activity patterns, although men had higher activity levels than women from 0-6 hrs. Among participants with a high school equivalent or more than a high school education, women generally had higher average activity levels than men during the daytime, while sex differences were smaller at night. The group with less than high school education demonstrated a peak around noon, followed by a gradual decline. In contrast, the other two groups maintained relatively high activity levels for a longer period during the day. 
+
+
+# Problem 3
+
+
