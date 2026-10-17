@@ -5,6 +5,12 @@ date: "2026-10-16"
 output: github_document
 ---
 
+```{r load_libraries}
+library(tidyverse)
+library(patchwork)
+library(p8105.datasets)
+```
+
 # Problem 1
 
 __Load dataset__
@@ -12,10 +18,7 @@ __Load dataset__
 Firstly, we load the packages and the dataset for setup. 
 
 ```{r}
-# load packages and NY NOAA dataset
-library(tidyverse)
-library(patchwork)
-library(p8105.datasets)
+# load NY NOAA dataset
 data("ny_noaa")
 
 # In order to assess which data might be an issue, we need to calculate the proportion of missing data for each variable. 
@@ -55,5 +58,37 @@ noaa_cleaned_df |>
 ```
 
 0 mm is the most commonly observed value. This is because most days are not in winter and don’t have snowfall. Other common values are 13 mm, 25 mm, 51 mm, and 76 mm. These values are likely the result of converting from inches to millimeters. If converting these values to inches, we can get approximately 0.5 inches, 1 inch, 2 inches, and 3 inches, respectively.
+
+```{r}
+# Get the average max temperature in January and in July in each station across years
+noaa_cleaned_df |>
+  filter(
+    month == 1 | month == 7, 
+    !is.na(tmax)
+  ) |>
+  mutate(
+    month = case_match(
+      month, 
+      1 ~ "January", 
+      7 ~ "July"
+    )
+  ) |> 
+  group_by(id, year, month) |> 
+  summarize(
+    mean_tmax = mean(tmax), 
+  ) |> 
+  ggplot(aes(x = year, y = mean_tmax, group = id)) + 
+  geom_line(alpha = 0.4) + 
+  facet_grid(. ~ month) + 
+  labs(
+    title = "Average maximum temperature in January and July by stations, 1981-2010", 
+    x = "Year", 
+    y = "Average maximum temperature (°C)", 
+    caption = "Data from the ny_noaa dataset"
+  )
+```
+
+Observable / interpretable structure: 
+Based on the plots, there is a seasonal difference in average maximum temperatures, which is that temperatures in July are much higher than in January. Temperatures in January ranging from -10 to 10 degrees C also have greater fluctuation of average maximum temperatures than temperatures in July ranging from 20-35 degrees C. Most weather stations capture similar annual patterns, but there are a few outliers. For example, the lowest average maximum temperature in July was around 14 degrees C in the late 1980s; the lowest average maximum temperature in January was around -13 degrees C in the early 1980s.
 
 
