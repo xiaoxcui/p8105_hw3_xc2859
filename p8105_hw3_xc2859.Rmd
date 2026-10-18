@@ -5,7 +5,7 @@ date: "2026-10-16"
 output: github_document
 ---
 
-```{r load_libraries}
+```{r message=FALSE}
 library(tidyverse)
 library(patchwork)
 library(p8105.datasets)
@@ -32,7 +32,7 @@ ny_noaa |>
 
 __Dataset description__
 
-The `ny_noaa` dataset contains `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. The observations were collected from `r n_distinct(ny_noaa$id)` weather stations between date of `r min(ny_noaa$date)` and date of `r max(ny_noaa$date)`. Each observation represents measurements of weather condition from one weather station on a specific date. The variables included in the dataset are station id, date, precipitation, snowfall, snow depth, and daily maximum and minimum temperatures. The proportion of missing data for variables station id, precipitation, snowfall, snow depth, daily maximum temperatures and daily minimum temperatures is 0%, 0%, 5.62%, 14.69%, 22.80%, 43.71% and 43.71%, respectively. Based on this, missing data is a large issue in this dataset, especially for daily maximum and minimum temperatures. There is also moderate missingness for snowfall (14.69% missing) and snow depth (22.80% missing), whereas missing data issue is mild for precipitation. 
+The `ny_noaa` dataset contains `r nrow(ny_noaa)` observations and `r ncol(ny_noaa)` variables. The observations were collected from `r n_distinct(pull(ny_noaa, id))` weather stations between date of `r min(pull(ny_noaa, date))` and date of `r max(pull(ny_noaa, date))`. Each observation represents measurements of weather condition from one weather station on a specific date. The variables included in the dataset are station id, date, precipitation, snowfall, snow depth, and daily maximum and minimum temperatures. The proportion of missing data for variables station id, precipitation, snowfall, snow depth, daily maximum temperatures and daily minimum temperatures is 0%, 0%, 5.62%, 14.69%, 22.80%, 43.71% and 43.71%, respectively. Based on this, missing data is a large issue in this dataset, especially for daily maximum and minimum temperatures. There is also moderate missingness for snowfall (14.69% missing) and snow depth (22.80% missing), whereas missing data issue is mild for precipitation. 
 
 __Data cleaning and answer questions__
 
@@ -133,7 +133,10 @@ snowfall_plot =
   )
 
 # Combine the two plots into a two-panel plot
-temperature_plot + snowfall_plot
+temperature_plot + snowfall_plot + 
+  plot_annotation(
+    title = "Temperature and snowfall patterns in New York"
+  )
 ```
 
 Comments on plots: 
@@ -398,7 +401,7 @@ citibike_tidy_df |>
 
 Comment: In July 2024, Pier 61 at Chelsea Piers was the most popular starting station with 163 rides, followed by University Pl & E 14 St with 155 rides. The top 5 stations had similar number of rides, ranging from 146 to 163. 
 
-__Effects on median ride duration__
+__Effects on median ride duration by year, month and weekdays__
 
 ```{r}
 citibike_tidy_df |>
@@ -443,3 +446,32 @@ citibike_tidy_df |>
 
 Comment: The median ride duration was consistently longer in July than in January in both years. Comparing the two years, the median ride duration was also generally longer in 2020 than in 2024, with a particularly large decrease in July in 2024. On weekends, rides tended to be longer than on weekdays. This weekly pattern was most pronounced in July 2020 and least noticeable in January 2024.
 
+__Effects on median ride duration in 2024 by month, membership status, and bike type__
+
+```{r}
+citibike_tidy_df |>
+  filter(year == 2024) |>
+  mutate(
+    month = factor(
+      month,
+      levels = c("January", "July")
+    )
+  ) |>
+  ggplot(
+    aes(
+      x = duration,
+      fill = rideable_type
+    )
+  ) +
+  geom_density(alpha = 0.4) +
+  facet_grid(member_casual ~ month) +
+  labs(
+    title = "Ride duration distribution by month, membership status, and bike type in 2024",
+    x = "Ride duration (minutes)",
+    y = "Density",
+    fill = "Bike type"
+  ) + 
+  theme(legend.position = "bottom")
+```
+
+Comment: Casual riders generally had longer and more variable ride durations than Citi Bike members, and this difference was especially noticeable in July. Among casual riders, the ride duration distributions differed somewhat between classic and electric bikes, and classic bike rides showed a wider distribution of ride duration. In contrast, among members, the distributions of ride duration for the two types greatly overlapped, which suggests that the impact of bike type on ride duration may be less important for members than for casual riders.
